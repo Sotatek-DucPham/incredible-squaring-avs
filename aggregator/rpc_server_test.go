@@ -63,9 +63,17 @@ func TestProcessSignedTaskResponse(t *testing.T) {
 // mocks an operator signing on a task response
 func createMockSignedTaskResponse(mockTask MockTask, keypair bls.KeyPair) (*SignedTaskResponse, error) {
 	numberToSquareBigInt := big.NewInt(int64(mockTask.NumberToSquare))
+	arrays := []*big.Int{numberToSquareBigInt}
+	trueAnswer := big.NewInt(0)
+	for _, num := range arrays {
+		if num.Cmp(trueAnswer) == 1 {
+			trueAnswer.Set(num)
+		}
+	}
+
 	taskResponse := &cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse{
 		ReferenceTaskIndex: mockTask.TaskNum,
-		NumberSquared:      numberToSquareBigInt.Mul(numberToSquareBigInt, numberToSquareBigInt),
+		MaxNumber:          trueAnswer,
 	}
 	taskResponseHash, err := core.GetTaskResponseDigest(taskResponse)
 	if err != nil {
