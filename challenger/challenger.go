@@ -136,9 +136,15 @@ func (c *Challenger) processTaskResponseLog(taskResponseLog *cstaskmanager.Contr
 }
 
 func (c *Challenger) callChallengeModule(taskIndex uint32) error {
-	numberToBeSquared := c.tasks[taskIndex].NumberToBeSquared
-	answerInResponse := c.taskResponses[taskIndex].TaskResponse.NumberSquared
-	trueAnswer := numberToBeSquared.Exp(numberToBeSquared, big.NewInt(2), nil)
+	numberToBeSquared := c.tasks[taskIndex].MaxInArray
+	answerInResponse := c.taskResponses[taskIndex].TaskResponse.MaxNumber
+
+	trueAnswer := big.NewInt(0)
+	for _, num := range numberToBeSquared {
+		if num.Cmp(trueAnswer) == 1 {
+			trueAnswer.Set(num)
+		}
+	}
 
 	// checking if the answer in the response submitted by aggregator is correct
 	if trueAnswer.Cmp(answerInResponse) != 0 {

@@ -31,7 +31,7 @@ func TestOperator(t *testing.T) {
 		newTaskCreatedLog := &cstaskmanager.ContractIncredibleSquaringTaskManagerNewTaskCreated{
 			TaskIndex: taskIndex,
 			Task: cstaskmanager.IIncredibleSquaringTaskManagerTask{
-				NumberToBeSquared:         numberToBeSquared,
+				MaxInArray:                []*big.Int{numberToBeSquared},
 				TaskCreatedBlock:          1000,
 				QuorumNumbers:             aggtypes.QUORUM_NUMBERS.UnderlyingType(),
 				QuorumThresholdPercentage: uint32(aggtypes.QUORUM_THRESHOLD_NUMERATOR),
@@ -39,10 +39,15 @@ func TestOperator(t *testing.T) {
 			Raw: types.Log{},
 		}
 		got := operator.ProcessNewTaskCreatedLog(newTaskCreatedLog)
-		numberSquared := big.NewInt(0).Mul(numberToBeSquared, numberToBeSquared)
+		numberSquared := big.NewInt(0)
+		for _, num := range newTaskCreatedLog.Task.MaxInArray {
+			if num.Cmp(numberSquared) == 1 {
+				numberSquared.Set(num)
+			}
+		}
 		want := &cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse{
 			ReferenceTaskIndex: taskIndex,
-			NumberSquared:      numberSquared,
+			MaxNumber:          numberSquared,
 		}
 		assert.Equal(t, got, want)
 	})
@@ -54,7 +59,7 @@ func TestOperator(t *testing.T) {
 		newTaskCreatedEvent := &cstaskmanager.ContractIncredibleSquaringTaskManagerNewTaskCreated{
 			TaskIndex: taskIndex,
 			Task: cstaskmanager.IIncredibleSquaringTaskManagerTask{
-				NumberToBeSquared:         numberToBeSquared,
+				MaxInArray:                []*big.Int{numberToBeSquared},
 				TaskCreatedBlock:          1000,
 				QuorumNumbers:             aggtypes.QUORUM_NUMBERS.UnderlyingType(),
 				QuorumThresholdPercentage: uint32(aggtypes.QUORUM_THRESHOLD_NUMERATOR),
@@ -66,11 +71,16 @@ func TestOperator(t *testing.T) {
 		assert.True(t, ok)
 		Y, ok := big.NewInt(0).SetString("15243507701692917330954619280683582177901049846125926696838777109165913318327", 10)
 		assert.True(t, ok)
-
+		numberSquared := big.NewInt(0)
+		for _, num := range newTaskCreatedEvent.Task.MaxInArray {
+			if num.Cmp(numberSquared) == 1 {
+				numberSquared.Set(num)
+			}
+		}
 		signedTaskResponse := &aggregator.SignedTaskResponse{
 			TaskResponse: cstaskmanager.IIncredibleSquaringTaskManagerTaskResponse{
 				ReferenceTaskIndex: taskIndex,
-				NumberSquared:      big.NewInt(0).Mul(numberToBeSquared, numberToBeSquared),
+				MaxNumber:          numberSquared,
 			},
 			BlsSignature: bls.Signature{
 				G1Point: bls.NewG1Point(X, Y),
